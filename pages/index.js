@@ -49,8 +49,8 @@ export default function App() {
       }).then((instance) => {
         newInstance = instance;
         const items = instance.toolbarItems;
-        // Hide everything in the toolbar except for the export button and then add a button to exit the form design mode.
-        instance.setToolbarItems(items.filter((item) => item.type == "export-pdf"));
+        // Customize the toolbar to only include the needed buttons.
+        instance.setToolbarItems(items.filter((item) => item.type == "export-pdf" || item.type == "document-editor"));
         instance.setToolbarItems(items => {
           items.push(exitFormDesignModeButton);
           return items;
