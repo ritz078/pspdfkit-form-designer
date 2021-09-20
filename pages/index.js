@@ -12,17 +12,24 @@ const navigation = [
 
 var PSPDFKit;
 var newInstance;
+var viewStateToggle = false;
 
-// Button used to exit form designer mode.
+// Button used to toggle form designer mode.
 const exitFormDesignModeButton = {
 	type: "custom",
 	id: "my-button",
-	title: "Exit Form Design Mode",
+	title: "Toggle Form Design Mode",
 	onPress: (event) => {
 		newInstance.setViewState(viewState => (
-      viewState.set("formDesignMode", false)
+      viewState.set("formDesignMode", viewStateToggle)
     ));
-	},
+
+    if (viewStateToggle == true) {
+      viewStateToggle = false;
+    } else {
+      viewStateToggle = true;
+    }
+	}
 };
 
 export default function App() {
