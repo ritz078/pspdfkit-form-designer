@@ -5,14 +5,17 @@
   "license": "SEE LICENSE IN https://pspdfkit.com/legal/License.pdf",
   "dependencies": {
     "@headlessui/react": "^1.4.1",
+    "formik": "^2.2.9",
     "next": "11.0.0",
     "pspdfkit": "2021.5.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"
   },
   "devDependencies": {
+    "@tailwindcss/forms": "^0.3.3",
     "autoprefixer": "^10.2.6",
     "postcss": "^8.3.5",
+    "prettier": "^2.4.1",
     "tailwindcss": "^2.2.4"
   },
   "scripts": {

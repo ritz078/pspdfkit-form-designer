@@ -31,9 +31,11 @@ const exitFormDesignModeButton = {
     }
 	}
 };
+import PropertyPanel from "../components/PropertyPanel";
 
 export default function App() {
   const containerRef = useRef(null);
+  const [instance, setInstance] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
@@ -41,7 +43,7 @@ export default function App() {
 
     (async function () {
       PSPDFKit = await import("pspdfkit");
-      await PSPDFKit.load({
+      PSPDFKit.load({
         container,
         document: "/example.pdf",
         baseUrl: `${window.location.protocol}//${window.location.host}/`,
@@ -55,6 +57,8 @@ export default function App() {
           items.push(exitFormDesignModeButton);
           return items;
         });
+
+          setInstance(instance)
       });
     })();
 
@@ -62,7 +66,7 @@ export default function App() {
   },[]);
 
   return (
-      
+
     <div className="h-screen flex overflow-hidden bg-white">
     <Transition.Root show={sidebarOpen} as={Fragment}>
       <Dialog as="div" className="fixed inset-0 flex z-40 md:hidden" onClose={setSidebarOpen}>
@@ -120,9 +124,9 @@ export default function App() {
             <nav className="mt-5 flex-1 px-2 bg-white space-y-1">
               {/* Here we add the items to the sidebar */}
               {navigation.map((item) => (
-                <a 
+                <a
                 name={item.name}
-                href={item.href} 
+                href={item.href}
                 onClick={handleInsertableAnnoClick}
                 class="w-fill flex p-3 bg-blue-50 hover:bg-gray-200 rounded-lg">
                   <img class="flex-none w-6 h-full" src={item.icon} />
@@ -145,6 +149,8 @@ export default function App() {
         `}
       </style>
       </div>
+      {instance && <PropertyPanel instance={instance} pspdfkit={PSPDFKit}/>}
+
     </div>
   );
 }
@@ -270,7 +276,7 @@ function insertAnnotation(type) {
         ]),
         defaultValue: '1'
       });
-      
+
       newInstance.create([widget, widget2, formField]);
       break;
     }
