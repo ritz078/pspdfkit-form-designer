@@ -45,10 +45,12 @@ const exitFormDesignModeButton = {
 
 export default function App() {
   const containerRef = useRef(null)
+  const fileInputRef = useRef(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [basicPopover, setBasicPopover] = useState(true)
   const [listPopover, setListPopover] = useState(false)
   const [addingPopover, setAddingPopover] = useState(false)
+  const [pdfDocument, setPdfDocument] = useState("/example.pdf")
 
 
 
@@ -281,6 +283,24 @@ export default function App() {
     console.log(basicPopover, listPopover, addingPopover)
   }
 
+  function handleUploadClick() {
+    const fileInput = fileInputRef.current;
+    if (fileInput instanceof HTMLInputElement) {
+      fileInput.click();
+    }
+  }
+
+  async function handleFileInputChange() {
+    const fileInput = fileInputRef.current;
+    if (fileInput instanceof HTMLInputElement) {
+      const file = fileInput.files[0];
+      if (file != null) {
+        setPdfDocument(await file.arrayBuffer());
+
+      }
+    }
+  }
+
   useEffect(() => {
     const container = containerRef.current;
 
@@ -289,7 +309,7 @@ export default function App() {
       
       await PSPDFKit.load({
         container,
-        document: "/example.pdf",
+        document: pdfDocument,
         baseUrl: `${window.location.protocol}//${window.location.host}/`,
         initialViewState: new PSPDFKit.ViewState({ readOnly: false, formDesignMode: true })
       }).then((instance) => {
@@ -305,7 +325,7 @@ export default function App() {
       });
     })();
     return () => PSPDFKit && PSPDFKit.unload(container);
-  }, []);
+  }, [pdfDocument]);
 
   return (
 
@@ -361,24 +381,45 @@ export default function App() {
                   src="/pspdfkit.svg"
                   alt="pspdfkit"
                 />
-                <span class="ml-2 truncate">PDF Designer</span>
+                <span className="ml-2 truncate">PDF Designer</span>
+              </div>
+
+              <input
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                onChange={handleFileInputChange}
+                ref={fileInputRef}
+              />
+
+              <div className="px-2 pt-4">
+                <button
+                  className="w-full flex p-3 bg-blue-50 hover:bg-gray-200 rounded-lg"
+                  onClick={handleUploadClick}  
+                >
+                  <img className="flex-none w-6 h-full" src="/file.svg" />
+                    <span className="ml-2 truncate">Upload PDF</span>
+                </button>
               </div>
               <Popover className="w-fill mt-5 flex-1 px-2 bg-white space-y-1">
                 {({ open }) => (
                   <>
                     {/* Here we add the items to the sidebar */}
                     {navigation.map((item) => (
-                      <div onClick={() => {
-                        currentFormField = item.name
-                        setupPopover()
-                      }}>
-                      <Popover.Button
-                        name={item.name}
-                        href={item.href}
-                        class="w-full flex p-3 bg-blue-50 hover:bg-gray-200 rounded-lg">
-                        <img class="flex-none w-6 h-full" src={item.icon} />
-                          <span class="ml-2 truncate">{item.name}</span>
-                      </Popover.Button>
+                      <div
+                        onClick={() => {
+                          currentFormField = item.name
+                          setupPopover()
+                        }}
+                        key={item.name}
+                      >
+                        <Popover.Button
+                          name={item.name}
+                          href={item.href}
+                          className="w-full flex p-3 bg-blue-50 hover:bg-gray-200 rounded-lg">
+                          <img className="flex-none w-6 h-full" src={item.icon} />
+                            <span className="ml-2 truncate">{item.name}</span>
+                        </Popover.Button>
                       </div>
                     ))}
                     <Popover.Panel className="absolute z-10 w-auto max-w-sm px-4 mt-3 transform -translate-x-1/2 left-1/2 sm:px-0 lg:max-w-3xl">
