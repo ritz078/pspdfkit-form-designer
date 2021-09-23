@@ -40,11 +40,13 @@ const exitFormDesignModeButton = {
     }
   }
 };
+import PropertyPanel from "../components/PropertyPanel";
 
 
 
 export default function App() {
-  const containerRef = useRef(null)
+  const containerRef = useRef(null);
+  const [instance, setInstance] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [basicPopover, setBasicPopover] = useState(true)
   const [listPopover, setListPopover] = useState(false)
@@ -232,7 +234,7 @@ export default function App() {
         break;
       }
 
-      case "Button": { 
+      case "Button": {
         const widget = new PSPDFKit.Annotations.WidgetAnnotation({
           ...widgetProperties,
           borderColor: PSPDFKit.Color.BLACK,
@@ -286,8 +288,7 @@ export default function App() {
 
     (async function () {
       PSPDFKit = await import("pspdfkit");
-      
-      await PSPDFKit.load({
+      PSPDFKit.load({
         container,
         document: "/example.pdf",
         baseUrl: `${window.location.protocol}//${window.location.host}/`,
@@ -295,13 +296,15 @@ export default function App() {
       }).then((instance) => {
         newInstance = instance;
         const items = instance.toolbarItems;
-        
+
         // Customize the toolbar to only include the needed buttons.
         instance.setToolbarItems(items.filter((item) => item.type == "export-pdf" || item.type == "document-editor"));
         instance.setToolbarItems(items => {
           items.push(exitFormDesignModeButton);
           return items;
         });
+
+          setInstance(instance)
       });
     })();
     return () => PSPDFKit && PSPDFKit.unload(container);
@@ -467,7 +470,7 @@ export default function App() {
                             Add additional item
                           </button>
                           }
-                        </div>  
+                        </div>
                       </div>}
                     </Popover.Panel>
                   </>
@@ -488,6 +491,8 @@ export default function App() {
         `}
         </style>
       </div>
-    </div >
+      {<PropertyPanel instance={instance} pspdfkit={PSPDFKit}/>}
+
+    </div>
   );
 }
