@@ -11,7 +11,8 @@
     "pspdfkit": "2021.5.0",
     "react": "^17.0.2",
     "react-color": "^2.19.3",
-    "react-dom": "^17.0.2"
+    "react-dom": "^17.0.2",
+    "react-popper": "^2.2.5"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.3.3",

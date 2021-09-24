@@ -43,17 +43,18 @@ const exitFormDesignModeButton = {
 };
 
 import PropertyPanel from "../components/PropertyPanel";
+import { usePopper } from "react-popper";
 
 export default function App() {
-  const containerRef = useRef(null)
-  const fileInputRef = useRef(null)
+  const containerRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const [instance, setInstance] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [basicPopover, setBasicPopover] = useState(true)
-  const [listPopover, setListPopover] = useState(false)
-  const [addingPopover, setAddingPopover] = useState(false)
-  const [pdfDocument, setPdfDocument] = useState("/example.pdf")
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [basicPopover, setBasicPopover] = useState(true);
+  const [listPopover, setListPopover] = useState(false);
+  const [addingPopover, setAddingPopover] = useState(false);
+  const [pdfDocument, setPdfDocument] = useState("/example.pdf");
 
   // This function is used to determine which popover UI should be shown and which not.
   function setupPopover() {
@@ -112,7 +113,6 @@ export default function App() {
       const file = fileInput.files[0];
       if (file != null) {
         setPdfDocument(await file.arrayBuffer());
-
       }
     }
   }
@@ -230,43 +230,18 @@ export default function App() {
                   <span className="ml-2 truncate">Upload PDF</span>
                 </button>
               </div>
-              <Popover className="w-fill mt-5 flex-1 px-2 bg-white space-y-1">
-                {({ open }) => (
-                  <>
-                    {/* Here we add the items to the sidebar */}
-                    {navigation.map((item) => (
-                      <div
-                        onClick={() => {
-                          currentFormField = item.name;
-                          setupPopover();
-                        }}
-                        key={item.name}
-                      >
-                        <Popover.Button
-                          name={item.name}
-                          href={item.href}
-                          className="w-full flex p-3 bg-blue-50 hover:bg-gray-200 rounded-lg"
-                        >
-                          <img
-                            className="flex-none w-6 h-full"
-                            src={item.icon}
-                          />
-                          <span className="ml-2 truncate">{item.name}</span>
-                        </Popover.Button>
-                      </div>
-                    ))}
-                    <Popover.Panel className="absolute z-10 w-auto max-w-sm px-4 mt-3 transform -translate-x-1/2 left-1/2 sm:px-0 lg:max-w-3xl">
-                      {({ close }) => (
-                        <CreateFieldDialog
-                          listPopover={listPopover}
-                          addingPopover={addingPopover}
-                          close={close}
-                        />
-                      )}
-                    </Popover.Panel>
-                  </>
-                )}
-              </Popover>
+
+              <div className="pt-4">
+                {/* Here we add the items to the sidebar */}
+                {navigation.map((item) => (
+                  <SidebarButton
+                    item={item}
+                    setupPopover={setupPopover}
+                    listPopover={listPopover}
+                    addingPopover={addingPopover}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -287,8 +262,67 @@ export default function App() {
   );
 }
 
+function SidebarButton({ item, setupPopover, listPopover, addingPopover }) {
+  const [referenceElement, setReferenceElement] = useState();
+  const [popperElement, setPopperElement] = useState();
+
+  const { styles: popperStyles, attributes: popperAttrs } = usePopper(
+    referenceElement,
+    popperElement,
+    {
+      placement: "right",
+    }
+  );
+
+  return (
+    <Popover className="w-fill px-2 py-1 bg-white space-y-1">
+      {({ open }) => (
+        <div
+          onClick={() => {
+            currentFormField = item.name;
+            setupPopover();
+          }}
+          key={item.name}
+        >
+          <Popover.Button
+            name={item.name}
+            href={item.href}
+            className="w-full flex p-3 bg-blue-50 hover:bg-gray-200 rounded-lg"
+            ref={setReferenceElement}
+          >
+            <img className="flex-none w-6 h-full" src={item.icon} />
+            <span className="ml-2 truncate">{item.name}</span>
+          </Popover.Button>
+
+          <Popover.Panel
+            className="z-10 w-max max-w-sm px-4 ml-4 mt-3 sm:px-0 lg:max-w-3xl"
+            style={popperStyles.popper}
+            ref={setPopperElement}
+            {...popperAttrs.popper}
+          >
+            {({ close }) => (
+              <CreateFieldDialog
+                listPopover={listPopover}
+                addingPopover={addingPopover}
+                close={close}
+              />
+            )}
+          </Popover.Panel>
+
+          {/* Ensure PSPDFKit container is covered by overlay to properly detet clicks outside popover */}
+          <Popover.Overlay
+            className={`${
+              open ? "fixed inset-0 opacity-10" : "opacity-0"
+            } bg-black`}
+          />
+        </div>
+      )}
+    </Popover>
+  );
+}
+
 function CreateFieldDialog({ listPopover, addingPopover, close }) {
-  const [fieldName, setFieldName] = useState('');
+  const [fieldName, setFieldName] = useState("");
 
   function handleFieldNameChange(event) {
     setFieldName(event.currentTarget.value);
