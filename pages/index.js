@@ -22,26 +22,6 @@ var viewStateToggle = false;
 var list;
 var currentFormField;
 
-// Button used to toggle form designer mode.
-const exitFormDesignModeButton = {
-  /** @type {'custom'} */
-  type: "custom",
-
-  id: "my-button",
-  title: "Toggle Form Design Mode",
-  onPress: (event) => {
-    newInstance.setViewState((viewState) =>
-      viewState.set("formDesignMode", viewStateToggle)
-    );
-
-    if (viewStateToggle == true) {
-      viewStateToggle = false;
-    } else {
-      viewStateToggle = true;
-    }
-  },
-};
-
 import PropertyPanel from "../components/PropertyPanel";
 import { usePopper } from "react-popper";
 
@@ -80,7 +60,7 @@ export default function App() {
       setListPopover(false);
       setAddingPopover(true);
     }
-    console.log(basicPopover, listPopover, addingPopover);
+    console.log({ basicPopover, listPopover, addingPopover });
   }
 
   function handleUploadClick() {
@@ -141,6 +121,27 @@ export default function App() {
               item.type == "export-pdf" || item.type == "document-editor"
           )
         );
+
+        // Button used to toggle form designer mode.
+        const exitFormDesignModeButton = {
+          /** @type {'custom'} */
+          type: "custom",
+
+          id: "my-button",
+          title: "Toggle Form Design Mode",
+          onPress: (event) => {
+            instance.setViewState((viewState) =>
+              viewState.set("formDesignMode", viewStateToggle)
+            );
+
+            if (viewStateToggle == true) {
+              viewStateToggle = false;
+            } else {
+              viewStateToggle = true;
+            }
+          },
+        };
+
         instance.setToolbarItems((items) => {
           items.push(exitFormDesignModeButton);
           return items;
@@ -235,10 +236,12 @@ export default function App() {
                 {/* Here we add the items to the sidebar */}
                 {navigation.map((item) => (
                   <SidebarButton
+                    key={item.name}
                     item={item}
                     setupPopover={setupPopover}
                     listPopover={listPopover}
                     addingPopover={addingPopover}
+                    instance={instance}
                   />
                 ))}
               </div>
@@ -262,7 +265,13 @@ export default function App() {
   );
 }
 
-function SidebarButton({ item, setupPopover, listPopover, addingPopover }) {
+function SidebarButton({
+  item,
+  setupPopover,
+  listPopover,
+  addingPopover,
+  instance,
+}) {
   const [referenceElement, setReferenceElement] = useState();
   const [popperElement, setPopperElement] = useState();
 
@@ -274,25 +283,27 @@ function SidebarButton({ item, setupPopover, listPopover, addingPopover }) {
     }
   );
 
+  function handleSideButtonClick() {
+    currentFormField = item.name;
+    setupPopover();
+  }
+
   return (
     <Popover className="w-fill px-2 py-1 bg-white space-y-1">
       {({ open }) => (
-        <div
-          onClick={() => {
-            currentFormField = item.name;
-            setupPopover();
-          }}
-          key={item.name}
-        >
-          <Popover.Button
-            name={item.name}
-            href={item.href}
-            className="w-full flex p-3 bg-blue-50 hover:bg-gray-200 rounded-lg"
-            ref={setReferenceElement}
-          >
-            <img className="flex-none w-6 h-full" src={item.icon} />
-            <span className="ml-2 truncate">{item.name}</span>
-          </Popover.Button>
+        <Fragment key={item.name}>
+          <div onClick={handleSideButtonClick}>
+            <Popover.Button
+              key={item.name}
+              name={item.name}
+              href={item.href}
+              className="w-full flex p-3 bg-blue-50 hover:bg-gray-200 rounded-lg"
+              ref={setReferenceElement}
+            >
+              <img className="flex-none w-6 h-full" src={item.icon} />
+              <span className="ml-2 truncate">{item.name}</span>
+            </Popover.Button>
+          </div>
 
           <Popover.Panel
             className="z-10 w-max max-w-sm px-4 ml-4 mt-3 sm:px-0 lg:max-w-3xl"
@@ -305,6 +316,7 @@ function SidebarButton({ item, setupPopover, listPopover, addingPopover }) {
                 listPopover={listPopover}
                 addingPopover={addingPopover}
                 close={close}
+                instance={instance}
               />
             )}
           </Popover.Panel>
@@ -315,19 +327,21 @@ function SidebarButton({ item, setupPopover, listPopover, addingPopover }) {
               open ? "fixed inset-0 opacity-10" : "opacity-0"
             } bg-black`}
           />
-        </div>
+        </Fragment>
       )}
     </Popover>
   );
 }
 
-function CreateFieldDialog({ listPopover, addingPopover, close }) {
+function CreateFieldDialog({ listPopover, addingPopover, close, instance }) {
   const [fieldName, setFieldName] = useState("");
 
   function handleFieldNameChange(event) {
     setFieldName(event.currentTarget.value);
   }
 
+  const canAddItem = fieldName.length > 0;
+  const canAddAdditionalItem = fieldName.length > 0;
   const canSubmit = fieldName.length > 0;
 
   return (
@@ -366,7 +380,9 @@ function CreateFieldDialog({ listPopover, addingPopover, close }) {
           disabled={!canSubmit}
           onClick={() => {
             close();
-            insertAnnotation();
+            insertAnnotation({
+              instance,
+            });
           }}
           className="inline-flex items-center px-6 py-3 border border-transparent shadow-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-25"
         >
@@ -404,6 +420,7 @@ function CreateFieldDialog({ listPopover, addingPopover, close }) {
             <button
               type="button"
               id="button2"
+              disabled={!canAddItem}
               onClick={() => {
                 const listItem = document.getElementById("list-item");
                 if (listItem instanceof HTMLInputElement) {
@@ -411,9 +428,11 @@ function CreateFieldDialog({ listPopover, addingPopover, close }) {
                   list = list.push(
                     new PSPDFKit.FormOption({ label: newItem, value: newItem })
                   );
+                } else {
+                  throw "List was not an input element";
                 }
               }}
-              className="inline-flex items-center px-6 py-3 border border-transparent shadow-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="inline-flex items-center px-6 py-3 border border-transparent shadow-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-25"
             >
               Add Item to List
             </button>
@@ -423,10 +442,11 @@ function CreateFieldDialog({ listPopover, addingPopover, close }) {
         {addingPopover && (
           <button
             type="button"
+            disabled={!canAddAdditionalItem}
             onClick={() => {
-              insertAnnotation();
+              insertAnnotation({ instance });
             }}
-            className="inline-flex items-center p-3 border border-transparent rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="inline-flex items-center p-3 border border-transparent rounded-full shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-25"
           >
             <PlusSmIconOutline className="h-6 w-6" aria-hidden="true" />
             Add additional item
@@ -437,26 +457,26 @@ function CreateFieldDialog({ listPopover, addingPopover, close }) {
   );
 }
 
-function insertAnnotation() {
+function insertAnnotation({ instance }) {
   // We need to reference this when creating both the widget annotation and the
   // form field itself, so that they are linked.
   const formNameInput = document.getElementById("form-name");
   if (!(formNameInput instanceof HTMLInputElement)) {
-    return;
+    throw "No form-name found";
   }
 
   const formFieldName = formNameInput.value;
 
   const widgetProperties = {
     id: PSPDFKit.generateInstantId(),
-    pageIndex: newInstance.viewState.currentPageIndex,
+    pageIndex: instance.viewState.currentPageIndex,
     formFieldName,
   };
 
   let left = 30;
   let top = 30;
 
-  console.log(currentFormField);
+  console.log({ currentFormField });
 
   switch (currentFormField) {
     case "Text": {
@@ -480,7 +500,7 @@ function insertAnnotation() {
         annotationIds: new PSPDFKit.Immutable.List([widget.id]),
       });
 
-      newInstance.create([widget, formField]);
+      instance.create([widget, formField]);
       break;
     }
 
@@ -504,7 +524,7 @@ function insertAnnotation() {
         annotationIds: new PSPDFKit.Immutable.List([widget.id]),
       });
 
-      newInstance.create([widget, formField]);
+      instance.create([widget, formField]);
       break;
     }
 
@@ -540,7 +560,7 @@ function insertAnnotation() {
         defaultValue: "1",
       });
 
-      newInstance.create([widget, formField]);
+      instance.create([widget, formField]);
       break;
     }
 
@@ -576,7 +596,7 @@ function insertAnnotation() {
         defaultValue: "1",
       });
 
-      newInstance.create([widget, formField]);
+      instance.create([widget, formField]);
       break;
     }
 
@@ -597,7 +617,8 @@ function insertAnnotation() {
         values: list[0],
         options: list,
       });
-      newInstance.create([widget, formField]);
+
+      instance.create([widget, formField]);
       break;
     }
 
@@ -618,7 +639,7 @@ function insertAnnotation() {
         values: list[0],
         options: list,
       });
-      newInstance.create([widget, formField]);
+      instance.create([widget, formField]);
       break;
     }
 
@@ -642,7 +663,7 @@ function insertAnnotation() {
         label: formFieldName,
         annotationIds: new PSPDFKit.Immutable.List([widget.id]),
       });
-      newInstance.create([widget, formField]);
+      instance.create([widget, formField]);
       break;
     }
 
