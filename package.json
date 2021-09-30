@@ -6,6 +6,7 @@
   "dependencies": {
     "@headlessui/react": "^1.4.1",
     "@heroicons/react": "^1.0.4",
+    "@popperjs/core": "^2.10.1",
     "formik": "^2.2.9",
     "next": "11.0.0",
     "pspdfkit": "2021.5.0",
