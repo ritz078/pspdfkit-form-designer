@@ -8,10 +8,10 @@ export default function ColorPicker({ value, onChange }) {
         <div
           style={{
             backgroundColor: value,
-            width: 20,
+            width: 60,
             height: 20,
-            borderRadius: 999,
-              border: '1px solid #000'
+            borderRadius: 2,
+            border: "1px solid #aaa",
           }}
         />
       </Popover.Button>

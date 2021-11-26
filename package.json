@@ -4,15 +4,22 @@
   "main": "index.js",
   "license": "SEE LICENSE IN https://pspdfkit.com/legal/License.pdf",
   "dependencies": {
-    "@headlessui/react": "^1.4.1",
+    "@headlessui/react": "^1.4.2",
     "@heroicons/react": "^1.0.4",
+    "@mdi/js": "^6.5.95",
+    "@mdi/react": "^1.5.0",
     "@popperjs/core": "^2.10.1",
+    "classnames": "^2.3.1",
     "formik": "^2.2.9",
     "next": "11.0.0",
     "pspdfkit": "2021.5.0",
     "react": "^17.0.2",
+    "react-beautiful-dnd": "^13.1.0",
     "react-color": "^2.19.3",
+    "react-dnd": "^14.0.4",
+    "react-dnd-html5-backend": "^14.0.2",
     "react-dom": "^17.0.2",
+    "react-icons": "^4.3.1",
     "react-popper": "^2.2.5"
   },
   "devDependencies": {
